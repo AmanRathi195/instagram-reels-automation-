@@ -131,7 +131,7 @@ for i in range(3):
 listfile=OUT/"concat.txt"
 listfile.write_text("".join("file '"+p.name+"'\n" for p in segments),encoding="utf-8")
 # Original minimal electronic sound bed, no copyrighted music.
-audio="[0:a]volume=0.045,afade=t=in:st=0:d=0.3,afade=t=out:st=8.3:d=0.7[a]"
+audio="[1:a]volume=0.045,afade=t=in:st=0:d=0.3,afade=t=out:st=8.3:d=0.7[a]"
 video=OUT/"reel.mp4"
 subprocess.run(["ffmpeg","-hide_banner","-loglevel","error","-y","-f","concat","-safe","0","-i",str(listfile),"-f","lavfi","-i","sine=frequency=110:sample_rate=44100:duration=9","-filter_complex",audio,"-map","0:v","-map","[a]","-c:v","copy","-c:a","aac","-b:a","96k","-movflags","+faststart",str(video)],check=True)
 caption=story["caption"]+"\n\n"+story["tags"]
