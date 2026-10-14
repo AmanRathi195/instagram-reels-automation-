@@ -138,15 +138,18 @@ segments=[]
 for i in range(3):
     target=OUT/f"part_{i}.mp4"
     vf="zoompan=z='min(zoom+0.00065,1.07)':d=1:s=720x1280:fps=24,format=yuv420p"
-    subprocess.run(["ffmpeg","-hide_banner","-loglevel","error","-y","-loop","1","-framerate","24","-i",str(OUT/f"scene_{i}.png"),"-t","3","-vf",vf,"-an","-c:v","libx264","-preset","veryfast","-crf","25","-pix_fmt","yuv420p",str(target)],check=True)
+    subprocess.run(["ffmpeg","-hide_banner","-loglevel","error","-y","-loop","1","-framerate","24","-i",str(OUT/f"scene_{i}.png"),"-t","5","-vf",vf,"-an","-c:v","libx264","-preset","veryfast","-crf","25","-pix_fmt","yuv420p",str(target)],check=True)
     segments.append(target)
 listfile=OUT/"concat.txt"
 listfile.write_text("".join("file '"+p.name+"'\n" for p in segments),encoding="utf-8")
 # Original minimal electronic sound bed, no copyrighted music.
-audio="[1:a]volume=0.045,afade=t=in:st=0:d=0.3,afade=t=out:st=8.3:d=0.7[a]"
+audio="[1:a]volume=0.045,lowpass=f=260,afade=t=in:st=0:d=1.5,afade=t=out:st=13.8:d=1.2[a]"
 video=OUT/"reel.mp4"
-subprocess.run(["ffmpeg","-hide_banner","-loglevel","error","-y","-f","concat","-safe","0","-i",str(listfile),"-f","lavfi","-i","sine=frequency=110:sample_rate=44100:duration=9","-filter_complex",audio,"-map","0:v","-map","[a]","-c:v","copy","-c:a","aac","-b:a","96k","-movflags","+faststart",str(video)],check=True)
+subprocess.run(["ffmpeg","-hide_banner","-loglevel","error","-y","-f","concat","-safe","0","-i",str(listfile),"-f","lavfi","-i","sine=frequency=110:sample_rate=44100:duration=15","-filter_complex",audio,"-map","0:v","-map","[a]","-c:v","copy","-c:a","aac","-b:a","96k","-movflags","+faststart",str(video)],check=True)
 caption=story["caption"]+"\n\n"+story["tags"]
 (OUT/"manifest.json").write_text(json.dumps({"date":today.isoformat(),"caption":caption,"video":"reel.mp4","status":"PREVIEW_ONLY","format":"cinematic-landscape" if story.get("mood")=="emotional" else "three-act-chat-reveal"},indent=2),encoding="utf-8")
+credits_path=ROOT/"assets"/"daily"/"credits.json"
+credits=json.loads(credits_path.read_text(encoding="utf-8")) if credits_path.exists() else []
+(OUT/"credits.json").write_text(json.dumps(credits,ensure_ascii=False,indent=2),encoding="utf-8")
 (OUT/"index.html").write_text('<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="background:#14121c;color:white;font-family:sans-serif;text-align:center"><h2>Reel preview — not published</h2><video src="reel.mp4" controls playsinline style="max-width:95%;max-height:85vh"></video></body></html>',encoding="utf-8")
 print("Generated preview-only Reel for",today)
