@@ -38,6 +38,12 @@ def background(theme,scene):
     for i in range(14):
         x=rng.randint(-160,W+160);y=rng.randint(-120,H+120);r=rng.randint(20,180)
         d.ellipse((x-r,y-r,x+r,y+r),outline=(70,64,87),width=rng.randint(1,3))
+    photo=ROOT/"assets"/"daily"/f"photo_{scene%3}.jpg"
+    if photo.exists():
+        from PIL import ImageOps
+        im=ImageOps.fit(Image.open(photo).convert("RGB"),(W,H),method=Image.Resampling.LANCZOS)
+        veil=Image.new("RGB",(W,H),(8,10,20))
+        im=Image.blend(im,veil,0.46)
     return im
 def pill(d,text,y,fill="#F1C15C"):
     f=font(22)
@@ -64,22 +70,27 @@ def emotional_scene(idx):
     # Original illustrated landscapes, rather than the savage chat template.
     import math
     palettes=[((17,25,54),(212,111,98)),((7,19,38),(82,83,123)),((12,22,39),(205,113,75))]
-    im=background(palettes[idx],idx+15)
+    im=background(palettes[idx],idx)
     d=ImageDraw.Draw(im)
+    has_photo=(ROOT/"assets"/"daily"/f"photo_{idx}.jpg").exists()
     sun_y=535+idx*18
-    for r in range(190,45,-7):
-        alpha=(190-r)/190
-        d.ellipse((W//2-r,sun_y-r,W//2+r,sun_y+r),outline=(230,int(140+60*alpha),120),width=2)
-    d.ellipse((W//2-72,sun_y-72,W//2+72,sun_y+72),fill="#FFD0A4")
+    if not has_photo:
+        for r in range(190,45,-7):
+            alpha=(190-r)/190
+            d.ellipse((W//2-r,sun_y-r,W//2+r,sun_y+r),outline=(230,int(140+60*alpha),120),width=2)
+    if not has_photo:
+        d.ellipse((W//2-72,sun_y-72,W//2+72,sun_y+72),fill="#FFD0A4")
     # Layered mountain silhouettes and a quiet foreground.
-    d.polygon([(0,780),(160,595),(300,770),(460,610),(720,800),(720,1280),(0,1280)],fill="#333B55")
-    d.polygon([(0,950),(155,770),(325,955),(515,760),(720,990),(720,1280),(0,1280)],fill="#1C2A3F")
-    d.polygon([(0,1080),(145,970),(280,1040),(480,925),(720,1070),(720,1280),(0,1280)],fill="#111D2E")
+    if not has_photo:
+        d.polygon([(0,780),(160,595),(300,770),(460,610),(720,800),(720,1280),(0,1280)],fill="#333B55")
+        d.polygon([(0,950),(155,770),(325,955),(515,760),(720,990),(720,1280),(0,1280)],fill="#1C2A3F")
+        d.polygon([(0,1080),(145,970),(280,1040),(480,925),(720,1070),(720,1280),(0,1280)],fill="#111D2E")
     # A small figure looking at the horizon.
-    d.ellipse((337,899,383,945),fill="#0A1424")
-    d.rounded_rectangle((331,936,389,1035),radius=21,fill="#0A1424")
-    d.line((343,1020,328,1090),fill="#0A1424",width=18)
-    d.line((378,1020,393,1090),fill="#0A1424",width=18)
+    if not has_photo:
+        d.ellipse((337,899,383,945),fill="#0A1424")
+        d.rounded_rectangle((331,936,389,1035),radius=21,fill="#0A1424")
+        d.line((343,1020,328,1090),fill="#0A1424",width=18)
+        d.line((378,1020,393,1090),fill="#0A1424",width=18)
     d.text((W//2,98),"JUST FEELING IT",font=font(20),anchor="mm",fill="#F9DCCF")
     headings=["SOME FEELINGS","THE THING ABOUT SILENCE","AND ONE DAY"]
     d.text((W//2,220),headings[idx],font=font(22),anchor="mm",fill="#FFE2C8")
@@ -96,7 +107,8 @@ def draw_scene(idx):
         return emotional_scene(idx)
     themes=[((11,13,24),(28,19,45)),((12,19,30),(24,33,53)),((30,12,26),(57,21,47))]
     im=background(themes[idx],idx);d=ImageDraw.Draw(im)
-    d.rounded_rectangle((34,47,686,1218),radius=45,outline="#6C5D78",width=3)
+    if not (ROOT/"assets"/"daily"/f"photo_{idx}.jpg").exists():
+        d.rounded_rectangle((34,47,686,1218),radius=45,outline="#6C5D78",width=3)
     d.text((W//2,91),"JUST FEELING IT",font=font(21),anchor="mm",fill="#C5B6D1")
     d.line((85,140,635,140),fill="#56485E",width=2)
     if idx==0:
