@@ -25,6 +25,8 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python fetch_visuals.py
       - run: python generate.py
+      - name: Validate Reel audio, video and duration
+        run: python validate_reel.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
