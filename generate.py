@@ -60,7 +60,40 @@ def chat_bubble(d,text,y,right=False,accent=False):
     for i,t in enumerate(lines[:4]):
         d.text((x0+26,y+36+i*45),t,font=f,fill="#F8F4FF")
     d.text((x1-20,y+178),"✓✓" if right else "now",font=font(18,False),fill="#E8B45F" if accent else "#AAA5B9",anchor="ra")
+def emotional_scene(idx):
+    # Original illustrated landscapes, rather than the savage chat template.
+    import math
+    palettes=[((17,25,54),(212,111,98)),((7,19,38),(82,83,123)),((12,22,39),(205,113,75))]
+    im=background(palettes[idx],idx+15)
+    d=ImageDraw.Draw(im)
+    sun_y=535+idx*18
+    for r in range(190,45,-7):
+        alpha=(190-r)/190
+        d.ellipse((W//2-r,sun_y-r,W//2+r,sun_y+r),outline=(230,int(140+60*alpha),120),width=2)
+    d.ellipse((W//2-72,sun_y-72,W//2+72,sun_y+72),fill="#FFD0A4")
+    # Layered mountain silhouettes and a quiet foreground.
+    d.polygon([(0,780),(160,595),(300,770),(460,610),(720,800),(720,1280),(0,1280)],fill="#333B55")
+    d.polygon([(0,950),(155,770),(325,955),(515,760),(720,990),(720,1280),(0,1280)],fill="#1C2A3F")
+    d.polygon([(0,1080),(145,970),(280,1040),(480,925),(720,1070),(720,1280),(0,1280)],fill="#111D2E")
+    # A small figure looking at the horizon.
+    d.ellipse((337,899,383,945),fill="#0A1424")
+    d.rounded_rectangle((331,936,389,1035),radius=21,fill="#0A1424")
+    d.line((343,1020,328,1090),fill="#0A1424",width=18)
+    d.line((378,1020,393,1090),fill="#0A1424",width=18)
+    d.text((W//2,98),"JUST FEELING IT",font=font(20),anchor="mm",fill="#F9DCCF")
+    headings=["SOME FEELINGS","THE THING ABOUT SILENCE","AND ONE DAY"]
+    d.text((W//2,220),headings[idx],font=font(22),anchor="mm",fill="#FFE2C8")
+    lines=[story["hook"],story["setup"],story["reply"]]
+    center(d,lines[idx],300,45,color="#FFF7EE",maxwidth=585)
+    if idx==2:
+        center(d,story["tagline"],1140,23,color="#EED2B9",maxwidth=590)
+    filename=OUT/f"scene_{idx}.png"
+    im.save(filename)
+    return filename
+
 def draw_scene(idx):
+    if story.get("mood")=="emotional":
+        return emotional_scene(idx)
     themes=[((11,13,24),(28,19,45)),((12,19,30),(24,33,53)),((30,12,26),(57,21,47))]
     im=background(themes[idx],idx);d=ImageDraw.Draw(im)
     d.rounded_rectangle((34,47,686,1218),radius=45,outline="#6C5D78",width=3)
@@ -102,6 +135,6 @@ audio="[0:a]volume=0.045,afade=t=in:st=0:d=0.3,afade=t=out:st=8.3:d=0.7[a]"
 video=OUT/"reel.mp4"
 subprocess.run(["ffmpeg","-hide_banner","-loglevel","error","-y","-f","concat","-safe","0","-i",str(listfile),"-f","lavfi","-i","sine=frequency=110:sample_rate=44100:duration=9","-filter_complex",audio,"-map","0:v","-map","[a]","-c:v","copy","-c:a","aac","-b:a","96k","-movflags","+faststart",str(video)],check=True)
 caption=story["caption"]+"\n\n"+story["tags"]
-(OUT/"manifest.json").write_text(json.dumps({"date":today.isoformat(),"caption":caption,"video":"reel.mp4","status":"PREVIEW_ONLY","format":"three-act-chat-reveal"},indent=2),encoding="utf-8")
+(OUT/"manifest.json").write_text(json.dumps({"date":today.isoformat(),"caption":caption,"video":"reel.mp4","status":"PREVIEW_ONLY","format":"cinematic-landscape" if story.get("mood")=="emotional" else "three-act-chat-reveal"},indent=2),encoding="utf-8")
 (OUT/"index.html").write_text('<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="background:#14121c;color:white;font-family:sans-serif;text-align:center"><h2>Reel preview — not published</h2><video src="reel.mp4" controls playsinline style="max-width:95%;max-height:85vh"></video></body></html>',encoding="utf-8")
 print("Generated preview-only Reel for",today)
